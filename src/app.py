@@ -1,5 +1,5 @@
 from flask import Flask
-from routes.upload import upload_bp
+from src.routes.upload import upload_bp
 
 app = Flask(__name__)
 
