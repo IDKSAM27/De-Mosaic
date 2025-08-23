@@ -1,0 +1,60 @@
+I'll use T3 stack for this project.
+
+The T3 Stack consists of :
+
+Next.js: A powerful React framework that enables server-side rendering (SSR) and static site generation (SSG) 
+for incredibly fast performance.
+
+TypeScript: Provides type safety across the entire application, from frontend to backend, which drastically 
+reduces bugs and improves maintainability.
+
+tRPC: Allows you to create fully type-safe APIs with no code generation or schemas. It makes your frontend and 
+backend feel like a single, cohesive application.
+
+Tailwind CSS: A utility-first CSS framework that allows for rapid and modern UI development without writing custom CSS.
+
+Prisma: A next-generation ORM (Object-Relational Mapper) for Node.js and TypeScript that makes database access 
+simple, safe, and intuitive.
+
+============================================================================================
+
+The Architecture:
+
+    Next.js/React Frontend (with TypeScript & Tailwind CSS): This will be the user interface where users upload 
+    their images. It's fast, modern, and highly interactive.
+
+    tRPC API Layer: This will handle communication between your Next.js frontend and its server-side logic.
+
+    Next.js API Route (as a Proxy): This is the bridge. The Next.js server will receive the image upload from 
+    the user and then forward it to your separate Python/FastAPI backend for AI processing.
+
+    Python/FastAPI Backend: This remains our dedicated, specialized microservice for running the heavy AI model, 
+    just as we planned.
+
+This "proxy" architecture is a very common and professional pattern. It keeps your AI processing isolated 
+(which is good for scalability) while giving you all the benefits of a modern web stack for the user experience.
+
+============================================================================================
+
+The Workflow:
+
+User Interaction: A user visits your Next.js application, which is fast and visually appealing thanks to React and Tailwind CSS.
+
+Image Upload: The user selects an image. The TypeScript code ensures the file handling is type-safe.
+
+API Call to Next.js: The frontend calls a tRPC endpoint on the Next.js server, sending the image.
+
+Proxy to Python: The Next.js server receives the image and immediately makes a POST request to your Python/FastAPI backend (http://localhost:8000/process-image/).
+
+AI Processing: The FastAPI server processes the image using the AI model, just as we designed.
+
+Response Journey: The processed image is sent back to the Next.js server, which then returns it to the user's browser via the tRPC response.
+
+Display Result: The frontend displays the final, uncensored image.
+
+============================================================================================
+
+npx create-t3-app@latest
+
+============================================================================================
+
