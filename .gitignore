@@ -2,6 +2,7 @@
 __pycache__/
 processed_files/
 test/
+temp_files/
 *.pyc
 .mypy_cache/
 .pytest_cache/

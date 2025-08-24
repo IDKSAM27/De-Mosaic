@@ -20,16 +20,14 @@ export const imageRouter = createTRPCRouter({
       formData.append("file", imageBlob, "image.png");
       const pythonApiUrl = "http://127.0.0.1:8000/process-image/";
 
-      // Set a longer timeout for the fetch request (e.g., 10 minutes = 600,000ms)
-      // This is for development on a CPU. A GPU in production will be much faster.
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 600000);
+      const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minute timeout
 
       try {
         const response = await fetch(pythonApiUrl, {
           method: "POST",
           body: formData,
-          signal: controller.signal, // Add the abort signal here
+          signal: controller.signal,
         });
 
         if (!response.ok) {
@@ -47,20 +45,24 @@ export const imageRouter = createTRPCRouter({
           processedImage: processedBase64,
         };
       } catch (error) {
-        if (error.name === 'AbortError') {
-          console.error("Fetch aborted due to timeout.");
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "The AI processing took too long and timed out. Please try a smaller image.",
-          });
+        // Correct way to handle 'unknown' error type in TypeScript
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            console.error("Fetch aborted due to timeout.");
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "The AI processing took too long and timed out. Please try a smaller image.",
+            });
+          }
         }
+        
+        // General error handling
         console.error("Error proxying to Python service:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to communicate with the AI processing service.",
         });
       } finally {
-        // Clear the timeout timer to prevent it from running unnecessarily
         clearTimeout(timeoutId);
       }
     }),
