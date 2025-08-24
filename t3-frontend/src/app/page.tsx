@@ -6,23 +6,18 @@ import { api } from "~/trpc/react";
 
 export default function HomePage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [processedImage, setProcessedImage] = useState<string | null>(null);
   
-  const processImageMutation = api.image.process.useMutation({
-    onSuccess: (data) => {
-      setProcessedImage(data.processedImage);
-    },
-    onError: (error) => {
-      alert(`Error: ${error.message}`);
-    },
-  });
+  // Correctly use isPending for loading state and data for the result
+  const processImageMutation = api.image.process.useMutation();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.;
+    const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setSelectedImage(reader.result as string);
+        // Reset previous result when new image is uploaded
+        processImageMutation.reset(); 
       };
       reader.readAsDataURL(file);
     }
@@ -54,21 +49,22 @@ export default function HomePage() {
         <button 
           onClick={handleProcessClick}
           className="mt-4 w-full px-4 py-2 font-bold text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:bg-gray-500"
-          disabled={!selectedImage || processImageMutation.isLoading}
+          disabled={!selectedImage || processImageMutation.isPending}
         >
-          {processImageMutation.isLoading ? "Processing..." : "Remove Mosaic"}
+          {processImageMutation.isPending ? "Processing..." : "Remove Mosaic"}
         </button>
       </div>
 
       <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
         <div className="flex flex-col items-center">
           <h2 className="text-2xl font-bold mb-4">Original Image</h2>
-          {selectedImage && <img src={selectedImage} alt="Original" className="rounded-lg" />}
+          {selectedImage && <img src={selectedImage} alt="Original" className="rounded-lg shadow-lg" />}
         </div>
         <div className="flex flex-col items-center">
           <h2 className="text-2xl font-bold mb-4">Processed Image</h2>
-          {processImageMutation.isLoading && <p>Loading...</p>}
-          {processedImage && <img src={processedImage} alt="Processed" className="rounded-lg" />}
+          {processImageMutation.isPending && <p className="text-gray-400">Loading...</p>}
+          {processImageMutation.isError && <p className="text-red-500">Error: {processImageMutation.error.message}</p>}
+          {processImageMutation.data && <img src={processImageMutation.data.processedImage} alt="Processed" className="rounded-lg shadow-lg" />}
         </div>
       </div>
     </main>

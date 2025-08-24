@@ -7,16 +7,24 @@ export const imageRouter = createTRPCRouter({
   process: publicProcedure
     .input(z.object({ imageBase64: z.string() }))
     .mutation(async ({ input }) => {
-      // 1. Convert base64 input to a Buffer
-      const imageBuffer = Buffer.from(input.imageBase64.split(',')[1], 'base64');
-      
-      // 2. Create FormData to send to the Python service
+      // 1. Extract the base64 content from the data URL
+      const base64Data = input.imageBase64.split(',')[1];
+      if (!base64Data) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid base64 image format.",
+        });
+      }
+
+      // 2. Create a Blob from the base64 data
+      const imageBlob = await (await fetch(input.imageBase64)).blob();
+
+      // 3. Create FormData to send to the Python service
       const formData = new FormData();
-      const imageBlob = new Blob([imageBuffer], { type: 'image/png' });
       formData.append("file", imageBlob, "image.png");
 
-      // 3. Proxy the request to the Python AI service
-      const pythonApiUrl = "http://127.0.0.1:8000/process-image/"; // Ensure your Python service runs here
+      // 4. Proxy the request to the Python AI service
+      const pythonApiUrl = "http://127.0.0.1:8000/process-image/";
 
       try {
         const response = await fetch(pythonApiUrl, {
@@ -31,7 +39,7 @@ export const imageRouter = createTRPCRouter({
           });
         }
 
-        // 4. Return the processed image as a base64 string
+        // 5. Return the processed image as a new base64 string
         const processedImageBlob = await response.blob();
         const processedImageBuffer = Buffer.from(await processedImageBlob.arrayBuffer());
         const processedBase64 = `data:${processedImageBlob.type};base64,${processedImageBuffer.toString('base64')}`;
