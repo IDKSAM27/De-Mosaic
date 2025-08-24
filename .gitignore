@@ -1,5 +1,7 @@
 .venv/
 __pycache__/
+processed_files/
+test/
 *.pyc
 .mypy_cache/
 .pytest_cache/
