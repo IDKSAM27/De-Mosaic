@@ -6,5 +6,5 @@ pillow
 numpy
 torch
 torchvision
-transformers
-pymupdf
+diffusers
+accelerate
